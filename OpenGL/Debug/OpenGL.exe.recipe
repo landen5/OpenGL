@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\liveo\source\repos\OpenGL\Debug\OpenGL.exe</FullPath>
+      <FullPath>C:\repos\OpenGL\Debug\OpenGL.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
