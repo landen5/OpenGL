@@ -18,6 +18,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 int main(void)
 {
@@ -78,14 +81,11 @@ int main(void)
 
         glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
 
-        glm::mat4 mvp = proj * view * model;
 
         Shader shader("res/shaders/basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);
 
         Texture texture("res/textures/background.png");
         texture.Bind();
@@ -98,6 +98,16 @@ int main(void)
 
         Renderer renderer;
 
+        //imgui init
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
+        ImGui::StyleColorsDark();
+
+        glm::vec3 translation(200, 200, 0);
+
         float r = 0.0f;
         float increment = 0.05f;
         /* Loop until the user closes the window */
@@ -106,8 +116,17 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
+            //imgui new frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+            glm::mat4 mvp = proj * view * model;
+
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+            shader.SetUniformMat4f("u_MVP", mvp);
 
             renderer.Draw(va, ib, shader);
 
@@ -118,6 +137,16 @@ int main(void)
 
             r += increment;
 
+            //show a window
+            {
+                ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            }
+
+            //imgui render
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
 
@@ -125,6 +154,11 @@ int main(void)
             glfwPollEvents();
         }
     }
+    //imgui shutdown
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
     return 0;
 }
